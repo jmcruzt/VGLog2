@@ -4,58 +4,69 @@ import fs from 'fs';
 
 const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), 'data', 'vglog.db');
 
-// Ensure data directory exists
-const dir = path.dirname(DB_PATH);
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir, { recursive: true });
+let _db: Database.Database | null = null;
+
+function getDb(): Database.Database {
+  if (_db) return _db;
+
+  const dir = path.dirname(DB_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  _db = new Database(DB_PATH);
+  _db.pragma('journal_mode = WAL');
+  _db.pragma('foreign_keys = ON');
+
+  _db.exec(`
+    CREATE TABLE IF NOT EXISTS platforms (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE
+    );
+
+    CREATE TABLE IF NOT EXISTS games (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      platform_id TEXT REFERENCES platforms(id),
+      platform_name TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('pending','completed','upcoming')),
+      is_rog_ally_x INTEGER NOT NULL DEFAULT 0,
+      is_game_pass INTEGER NOT NULL DEFAULT 0,
+      estimated_hours REAL,
+      release_year INTEGER,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_playing_now INTEGER NOT NULL DEFAULT 0,
+      start_date TEXT,
+      end_date TEXT,
+      completed_hours REAL,
+      days_to_complete INTEGER,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      action TEXT NOT NULL,
+      entity TEXT NOT NULL,
+      entity_id TEXT NOT NULL,
+      timestamp TEXT NOT NULL,
+      details TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_games_status ON games(status);
+    CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp DESC);
+  `);
+
+  return _db;
 }
 
-// Singleton connection
-const db = new Database(DB_PATH);
-
-// Enable WAL mode for better concurrency
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-// Schema initialization
-db.exec(`
-  CREATE TABLE IF NOT EXISTS platforms (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE
-  );
-
-  CREATE TABLE IF NOT EXISTS games (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    platform_id TEXT REFERENCES platforms(id),
-    platform_name TEXT NOT NULL,
-    status TEXT NOT NULL CHECK(status IN ('pending','completed','upcoming')),
-    is_rog_ally_x INTEGER NOT NULL DEFAULT 0,
-    is_game_pass INTEGER NOT NULL DEFAULT 0,
-    estimated_hours REAL,
-    release_year INTEGER,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    is_playing_now INTEGER NOT NULL DEFAULT 0,
-    start_date TEXT,
-    end_date TEXT,
-    completed_hours REAL,
-    days_to_complete INTEGER,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS audit_logs (
-    id TEXT PRIMARY KEY,
-    action TEXT NOT NULL,
-    entity TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    timestamp TEXT NOT NULL,
-    details TEXT NOT NULL
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_games_status ON games(status);
-  CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp DESC);
-`);
+// Proxy defers DB initialization to first use, so importing this module
+// during Next.js build (when /data disk isn't mounted yet) doesn't fail.
+const db = new Proxy({} as Database.Database, {
+  get(_target, prop) {
+    return Reflect.get(getDb(), prop as string);
+  },
+});
 
 export default db;
 
