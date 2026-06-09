@@ -1,67 +1,21 @@
 /**
- * One-time migration script: MongoDB → SQLite
+ * One-time migration script: MongoDB → Turso
  *
  * Usage:
- *   MONGO_URI=mongodb://localhost:27017 npx ts-node --project tsconfig.json scripts/migrate-from-mongodb.ts
- *
- * The script connects to MongoDB, reads all platforms, games, and audit logs,
- * then inserts them into the SQLite database at ./data/vglog.db.
- *
- * Run once locally before deploying to Railway.
+ *   MONGO_URI=mongodb://localhost:27017 TURSO_URL=libsql://... TURSO_AUTH_TOKEN=... \
+ *     npx ts-node --project tsconfig.json scripts/migrate-from-mongodb.ts
  */
 
 import { MongoClient, ObjectId } from 'mongodb';
-import path from 'path';
-import fs from 'fs';
-import Database from 'better-sqlite3';
+import { createClient } from '@libsql/client';
 
 const MONGO_URI = process.env.MONGO_URI ?? 'mongodb://localhost:27017';
-const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), 'data', 'vglog.db');
+const TURSO_URL = process.env.TURSO_URL;
+const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
 
-// Ensure data dir
-const dir = path.dirname(DB_PATH);
-if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+if (!TURSO_URL) { console.error('TURSO_URL is required'); process.exit(1); }
 
-// Init SQLite (schema already created by lib/db.ts logic — replicate here)
-const sqlite = new Database(DB_PATH);
-sqlite.pragma('journal_mode = WAL');
-sqlite.pragma('foreign_keys = ON');
-
-sqlite.exec(`
-  CREATE TABLE IF NOT EXISTS platforms (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE
-  );
-  CREATE TABLE IF NOT EXISTS games (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    platform_id TEXT REFERENCES platforms(id),
-    platform_name TEXT NOT NULL,
-    status TEXT NOT NULL CHECK(status IN ('pending','completed','upcoming')),
-    is_rog_ally_x INTEGER NOT NULL DEFAULT 0,
-    is_game_pass INTEGER NOT NULL DEFAULT 0,
-    estimated_hours REAL,
-    release_year INTEGER,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    is_playing_now INTEGER NOT NULL DEFAULT 0,
-    start_date TEXT,
-    end_date TEXT,
-    completed_hours REAL,
-    days_to_complete INTEGER,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS audit_logs (
-    id TEXT PRIMARY KEY,
-    action TEXT NOT NULL,
-    entity TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    timestamp TEXT NOT NULL,
-    details TEXT NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS idx_games_status ON games(status);
-  CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp DESC);
-`);
+const turso = createClient({ url: TURSO_URL, authToken: TURSO_AUTH_TOKEN });
 
 function toId(v: unknown): string {
   if (v instanceof ObjectId) return v.toHexString();
@@ -77,38 +31,47 @@ function toISO(v: unknown): string | null {
 
 async function main() {
   console.log('Connecting to MongoDB:', MONGO_URI);
-  const client = new MongoClient(MONGO_URI);
-  await client.connect();
+  const mongo = new MongoClient(MONGO_URI);
+  await mongo.connect();
 
-  // ── Platforms ────────────────────────────────────────────────────────────
-  const platformsDb = client.db('vglog_games');
-  const mongoPlatforms = await platformsDb.collection('platforms').find({}).toArray();
-  console.log(`Migrating ${mongoPlatforms.length} platforms…`);
-
-  const insertPlatform = sqlite.prepare('INSERT OR IGNORE INTO platforms (id, name) VALUES (?, ?)');
-  const insertAllPlatforms = sqlite.transaction(() => {
-    for (const p of mongoPlatforms) {
-      insertPlatform.run(toId(p._id), p.name);
-    }
-  });
-  insertAllPlatforms();
-
-  // ── Games ────────────────────────────────────────────────────────────────
-  const mongoGames = await platformsDb.collection('games').find({}).toArray();
-  console.log(`Migrating ${mongoGames.length} games…`);
-
-  const insertGame = sqlite.prepare(`
-    INSERT OR IGNORE INTO games
-      (id, name, platform_id, platform_name, status, is_rog_ally_x, is_game_pass,
-       estimated_hours, release_year, sort_order, is_playing_now, start_date, end_date,
-       completed_hours, days_to_complete, created_at, updated_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  // Schema
+  await turso.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS platforms (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+    CREATE TABLE IF NOT EXISTS games (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, platform_id TEXT, platform_name TEXT NOT NULL,
+      status TEXT NOT NULL, is_rog_ally_x INTEGER NOT NULL DEFAULT 0, is_game_pass INTEGER NOT NULL DEFAULT 0,
+      estimated_hours REAL, release_year INTEGER, sort_order INTEGER NOT NULL DEFAULT 0,
+      is_playing_now INTEGER NOT NULL DEFAULT 0, start_date TEXT, end_date TEXT,
+      completed_hours REAL, days_to_complete INTEGER, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY, action TEXT NOT NULL, entity TEXT NOT NULL,
+      entity_id TEXT NOT NULL, timestamp TEXT NOT NULL, details TEXT NOT NULL
+    );
   `);
-  const insertAllGames = sqlite.transaction(() => {
-    for (const g of mongoGames) {
-      insertGame.run(
+
+  const platformsDb = mongo.db('vglog_games');
+
+  // Platforms
+  const mongoPlatforms = await platformsDb.collection('platforms').find({}).toArray();
+  console.log(`Migrating ${mongoPlatforms.length} platforms...`);
+  for (const p of mongoPlatforms) {
+    await turso.execute({ sql: 'INSERT OR IGNORE INTO platforms (id, name) VALUES (?, ?)', args: [toId(p._id), p.name] });
+  }
+
+  // Games
+  const mongoGames = await platformsDb.collection('games').find({}).toArray();
+  console.log(`Migrating ${mongoGames.length} games...`);
+  for (const g of mongoGames) {
+    await turso.execute({
+      sql: `INSERT OR IGNORE INTO games
+        (id, name, platform_id, platform_name, status, is_rog_ally_x, is_game_pass,
+         estimated_hours, release_year, sort_order, is_playing_now, start_date, end_date,
+         completed_hours, days_to_complete, created_at, updated_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      args: [
         toId(g._id), g.name,
-        g.platformId ?? toId(g.platformId),
+        g.platformId ? toId(g.platformId) : null,
         g.platformName ?? '',
         g.status ?? 'pending',
         g.isROGAllyX ? 1 : 0,
@@ -123,43 +86,30 @@ async function main() {
         g.daysToComplete ?? null,
         toISO(g.createdAt) ?? new Date().toISOString(),
         toISO(g.updatedAt) ?? new Date().toISOString(),
-      );
-    }
-  });
-  insertAllGames();
+      ],
+    });
+  }
 
-  // ── Audit Logs ────────────────────────────────────────────────────────────
-  const logsDb = client.db('vglog_logs');
+  // Audit logs
+  const logsDb = mongo.db('vglog_logs');
   const mongoLogs = await logsDb.collection('auditLogs').find({}).toArray();
-  console.log(`Migrating ${mongoLogs.length} audit logs…`);
+  console.log(`Migrating ${mongoLogs.length} audit logs...`);
+  for (const l of mongoLogs) {
+    await turso.execute({
+      sql: 'INSERT OR IGNORE INTO audit_logs (id, action, entity, entity_id, timestamp, details) VALUES (?,?,?,?,?,?)',
+      args: [toId(l._id), l.action, l.entity, l.entityId ?? '', toISO(l.timestamp) ?? new Date().toISOString(), JSON.stringify(l.details ?? {})],
+    });
+  }
 
-  const insertLog = sqlite.prepare(`
-    INSERT OR IGNORE INTO audit_logs (id, action, entity, entity_id, timestamp, details)
-    VALUES (?,?,?,?,?,?)
-  `);
-  const insertAllLogs = sqlite.transaction(() => {
-    for (const l of mongoLogs) {
-      insertLog.run(
-        toId(l._id), l.action, l.entity, l.entityId ?? '',
-        toISO(l.timestamp) ?? new Date().toISOString(),
-        JSON.stringify(l.details ?? {}),
-      );
-    }
-  });
-  insertAllLogs();
+  await mongo.close();
 
-  await client.close();
-
-  const pCount = (sqlite.prepare('SELECT COUNT(*) as c FROM platforms').get() as { c: number }).c;
-  const gCount = (sqlite.prepare('SELECT COUNT(*) as c FROM games').get() as { c: number }).c;
-  const lCount = (sqlite.prepare('SELECT COUNT(*) as c FROM audit_logs').get() as { c: number }).c;
-
-  console.log('✓ Migration complete!');
-  console.log(`  Platforms: ${pCount}`);
-  console.log(`  Games:     ${gCount}`);
-  console.log(`  Logs:      ${lCount}`);
-
-  sqlite.close();
+  const { rows: [p] } = await turso.execute('SELECT COUNT(*) as c FROM platforms');
+  const { rows: [g] } = await turso.execute('SELECT COUNT(*) as c FROM games');
+  const { rows: [l] } = await turso.execute('SELECT COUNT(*) as c FROM audit_logs');
+  console.log('Migration complete!');
+  console.log(`  Platforms: ${p.c}`);
+  console.log(`  Games:     ${g.c}`);
+  console.log(`  Logs:      ${l.c}`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });

@@ -1,0 +1,30 @@
+import type { Row } from '@libsql/client';
+
+export function rowToGame(row: Row) {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    platformId: row.platform_id as string,
+    platformName: row.platform_name as string,
+    status: row.status as string,
+    isROGAllyX: Boolean(Number(row.is_rog_ally_x)),
+    isGamePass: Boolean(Number(row.is_game_pass)),
+    estimatedHours: row.estimated_hours != null ? Number(row.estimated_hours) : null,
+    releaseYear: row.release_year != null ? Number(row.release_year) : null,
+    order: Number(row.sort_order),
+    isPlayingNow: Boolean(Number(row.is_playing_now)),
+    startDate: row.start_date as string | null,
+    endDate: row.end_date as string | null,
+    completedHours: row.completed_hours != null ? Number(row.completed_hours) : null,
+    daysToComplete: row.days_to_complete != null ? Number(row.days_to_complete) : null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export function rowToPlatform(row: Row) {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+  };
+}

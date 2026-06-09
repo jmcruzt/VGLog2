@@ -1,38 +1,28 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
+import { createClient, type Client } from '@libsql/client';
+import { rowToGame, rowToPlatform } from './mappers';
 
-const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), 'data', 'vglog.db');
+export { rowToGame, rowToPlatform };
 
-let _db: Database.Database | null = null;
+let _client: Client | null = null;
+let _initPromise: Promise<void> | null = null;
 
-function getDb(): Database.Database {
-  if (_db) return _db;
-
-  const dir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dir)) {
-    try {
-      fs.mkdirSync(dir, { recursive: true });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(
-        `Cannot create database directory "${dir}". ` +
-        `If deploying on Render, add a Disk mounted at "${dir}" and set DATABASE_PATH env var. ` +
-        `Original error: ${msg}`
-      );
-    }
+function getClient(): Client {
+  if (!_client) {
+    if (!process.env.TURSO_URL) throw new Error('TURSO_URL env var is not set');
+    _client = createClient({
+      url: process.env.TURSO_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
   }
+  return _client;
+}
 
-  _db = new Database(DB_PATH);
-  _db.pragma('journal_mode = WAL');
-  _db.pragma('foreign_keys = ON');
-
-  _db.exec(`
+async function initSchema(client: Client): Promise<void> {
+  await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS platforms (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL UNIQUE
     );
-
     CREATE TABLE IF NOT EXISTS games (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -52,7 +42,6 @@ function getDb(): Database.Database {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
-
     CREATE TABLE IF NOT EXISTS audit_logs (
       id TEXT PRIMARY KEY,
       action TEXT NOT NULL,
@@ -61,57 +50,14 @@ function getDb(): Database.Database {
       timestamp TEXT NOT NULL,
       details TEXT NOT NULL
     );
-
     CREATE INDEX IF NOT EXISTS idx_games_status ON games(status);
     CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp DESC);
   `);
-
-  return _db;
 }
 
-// Proxy defers DB initialization to first use at request time.
-// During `next build`, NEXT_PHASE is set and the disk isn't mounted yet,
-// so we return no-ops to prevent mkdir/open failures at build time.
-// Methods are bound to the real instance so `this` works inside better-sqlite3.
-const db = new Proxy({} as Database.Database, {
-  get(_target, prop) {
-    if (process.env.NEXT_PHASE === 'phase-production-build') {
-      return () => undefined;
-    }
-    const instance = getDb();
-    const value = Reflect.get(instance, prop as string);
-    return typeof value === 'function' ? value.bind(instance) : value;
-  },
-});
-
-export default db;
-
-// Row → Game shape mapper
-export function rowToGame(row: Record<string, unknown>) {
-  return {
-    id: row.id as string,
-    name: row.name as string,
-    platformId: row.platform_id as string,
-    platformName: row.platform_name as string,
-    status: row.status as string,
-    isROGAllyX: Boolean(row.is_rog_ally_x),
-    isGamePass: Boolean(row.is_game_pass),
-    estimatedHours: row.estimated_hours as number | null,
-    releaseYear: row.release_year as number | null,
-    order: row.sort_order as number,
-    isPlayingNow: Boolean(row.is_playing_now),
-    startDate: row.start_date as string | null,
-    endDate: row.end_date as string | null,
-    completedHours: row.completed_hours as number | null,
-    daysToComplete: row.days_to_complete as number | null,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
-  };
-}
-
-export function rowToPlatform(row: Record<string, unknown>) {
-  return {
-    id: row.id as string,
-    name: row.name as string,
-  };
+export async function db(): Promise<Client> {
+  const client = getClient();
+  if (!_initPromise) _initPromise = initSchema(client);
+  await _initPromise;
+  return client;
 }
