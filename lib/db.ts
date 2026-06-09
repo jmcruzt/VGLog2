@@ -11,7 +11,16 @@ function getDb(): Database.Database {
 
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(
+        `Cannot create database directory "${dir}". ` +
+        `If deploying on Render, add a Disk mounted at "${dir}" and set DATABASE_PATH env var. ` +
+        `Original error: ${msg}`
+      );
+    }
   }
 
   _db = new Database(DB_PATH);
