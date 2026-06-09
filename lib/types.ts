@@ -1,0 +1,104 @@
+export type GameStatus = 'pending' | 'completed' | 'upcoming';
+
+export interface Game {
+  id: string;
+  name: string;
+  platformId: string;
+  platformName: string;
+  status: GameStatus;
+  isROGAllyX: boolean;
+  isGamePass: boolean;
+  estimatedHours: number | null;
+  releaseYear: number | null;
+  order: number;
+  isPlayingNow: boolean;
+  startDate: string | null;
+  endDate: string | null;
+  completedHours: number | null;
+  daysToComplete: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Platform {
+  id: string;
+  name: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T | null;
+  error: string | null;
+}
+
+export interface GroupCount {
+  label: string;
+  count: number;
+}
+
+export interface PendingSummary {
+  totalHours: number;
+  approxDays: number;
+  approxEndDate: string;
+  byPlatform: GroupCount[];
+  byYear: GroupCount[];
+  completedByYear: GroupCount[];
+}
+
+export interface CompletedSummary {
+  totalCompleted: number;
+  yearSpan: number;
+  byPlatform: GroupCount[];
+}
+
+export interface UpcomingSummary {
+  byPlatform: GroupCount[];
+}
+
+export interface CreateGameDto {
+  name: string;
+  platformId: string;
+  status: GameStatus;
+  isROGAllyX: boolean;
+  isGamePass: boolean;
+  estimatedHours?: number;
+  releaseYear?: number;
+}
+
+export interface UpdateGameDto {
+  name: string;
+  platformId: string;
+  isROGAllyX: boolean;
+  isGamePass: boolean;
+  estimatedHours?: number;
+  releaseYear?: number;
+}
+
+export interface MarkCompletedDto {
+  endDate: string;
+  completedHours: number;
+}
+
+export interface PromoteToPendingDto {
+  platformId: string;
+  isROGAllyX: boolean;
+  isGamePass: boolean;
+  estimatedHours?: number;
+  releaseYear?: number;
+  isPlayingNow?: boolean;
+  startDate?: string;
+}
+
+export interface CreatePlatformDto {
+  name: string;
+}
+
+export interface UpdatePlatformDto {
+  name: string;
+}
+
+export interface GamesFilter {
+  status: GameStatus;
+  platform?: string;
+  year?: number;
+}
