@@ -62,9 +62,12 @@ function getDb(): Database.Database {
 
 // Proxy defers DB initialization to first use, so importing this module
 // during Next.js build (when /data disk isn't mounted yet) doesn't fail.
+// Methods are bound to the real instance so `this` works inside better-sqlite3.
 const db = new Proxy({} as Database.Database, {
   get(_target, prop) {
-    return Reflect.get(getDb(), prop as string);
+    const instance = getDb();
+    const value = Reflect.get(instance, prop as string);
+    return typeof value === 'function' ? value.bind(instance) : value;
   },
 });
 
