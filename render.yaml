@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: vglog2
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    disk:
+      name: vglog2-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_PATH
+        value: /data/vglog.db
