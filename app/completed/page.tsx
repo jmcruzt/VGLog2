@@ -20,13 +20,19 @@ function daysToComplete(game: Game): string {
   return `${Math.floor(diff / (1000 * 60 * 60 * 24))}d`;
 }
 
-function GroupList({ items }: { items: GroupCount[] }) {
+function GroupList({ items, type = 'plain' }: { items: GroupCount[]; type?: 'platform' | 'year' | 'plain' }) {
   if (items.length === 0) return <p className="text-sm text-gray-400 dark:text-gray-600">No data.</p>;
   return (
     <ul className="space-y-1">
       {items.map(item => (
-        <li key={item.label} className="flex justify-between text-sm">
-          <span className="text-gray-600 dark:text-gray-400">{item.label}</span>
+        <li key={item.label} className="flex items-center justify-between text-sm">
+          {type === 'platform' ? (
+            <span className={`${BADGE_CLASSES} ${getPlatformColor(item.label)}`}>{item.label}</span>
+          ) : type === 'year' ? (
+            <span className={`${BADGE_CLASSES} ${getYearColor(parseInt(item.label))}`}>{item.label}</span>
+          ) : (
+            <span className="text-gray-600 dark:text-gray-400">{item.label}</span>
+          )}
           <span className="font-semibold text-gray-900 dark:text-gray-100">{item.count}</span>
         </li>
       ))}
@@ -164,7 +170,7 @@ export default function CompletedPage() {
           )}
         </DashboardCard>
         <DashboardCard title="Completed by Platform" isLoading={summaryLoading}>
-          {summary && <GroupList items={summary.byPlatform} />}
+          {summary && <GroupList items={summary.byPlatform} type="platform" />}
         </DashboardCard>
       </aside>
     </div>
