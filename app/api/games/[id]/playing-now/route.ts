@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { db, rowToGame } from '@/lib/db';
+import type { InStatement } from '@libsql/client';
 
 function ok<T>(data: T) { return NextResponse.json({ success: true, data, error: null }); }
 function err(message: string, status = 400) { return NextResponse.json({ success: false, data: null, error: message }, { status }); }
@@ -14,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const game = gRows[0];
   const now = new Date().toISOString();
   const isCurrentlyPlaying = Boolean(Number(game.is_playing_now));
-  const statements: { sql: string; args: unknown[] }[] = [];
+  const statements: InStatement[] = [];
   if (isCurrentlyPlaying) {
     statements.push({ sql: 'UPDATE games SET is_playing_now=0, start_date=NULL, updated_at=? WHERE id=?', args: [now, id] });
   } else {

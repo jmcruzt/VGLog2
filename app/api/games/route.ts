@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { db, rowToGame } from '@/lib/db';
+import type { InValue } from '@libsql/client';
 
 function ok<T>(data: T) { return NextResponse.json({ success: true, data, error: null }); }
 function err(message: string, status = 400) { return NextResponse.json({ success: false, data: null, error: message }, { status }); }
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   const year = searchParams.get('year');
   if (!status) return err('status is required');
   let sql = 'SELECT * FROM games WHERE status = ?';
-  const args: unknown[] = [status];
+  const args: InValue[] = [status];
   if (platform) { sql += ' AND platform_name = ?'; args.push(platform); }
   if (year) { sql += ' AND release_year = ?'; args.push(parseInt(year)); }
   sql += ' ORDER BY is_playing_now DESC, sort_order ASC, created_at ASC';
