@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <TopBar />
           <GlobalLoadingWrapper>
-            <main className="mx-auto max-w-screen-2xl px-6 py-6">
+            <main className="mx-auto max-w-screen-2xl px-4 py-6 md:px-6">
               {children}
             </main>
           </GlobalLoadingWrapper>

@@ -77,7 +77,7 @@ export default function UpcomingPage() {
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col gap-6 md:flex-row">
       <div className="min-w-0 flex-1">
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <button onClick={() => setAddModalOpen(true)}
@@ -164,7 +164,7 @@ export default function UpcomingPage() {
         )}
       </div>
 
-      <aside className="w-72 shrink-0 space-y-4">
+      <aside className="w-full space-y-4 md:w-72 md:shrink-0">
         <DashboardCard title="Upcoming by Platform" isLoading={summaryLoading}>
           {summary && <GroupList items={summary.byPlatform} type="platform" />}
         </DashboardCard>

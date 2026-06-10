@@ -86,7 +86,7 @@ export default function CompletedPage() {
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col gap-6 md:flex-row">
       <div className="min-w-0 flex-1">
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <select value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}
@@ -154,7 +154,7 @@ export default function CompletedPage() {
         )}
       </div>
 
-      <aside className="w-72 shrink-0 space-y-4">
+      <aside className="w-full space-y-4 md:w-72 md:shrink-0">
         <DashboardCard title="Overview" isLoading={summaryLoading}>
           {summary && (
             <>
