@@ -72,7 +72,7 @@ export default function UpcomingPage() {
   }
 
   function handleExport() {
-    const rows = displayed.map(g => ({ Name: g.name, Platform: g.platformName }));
+    const rows = displayed.map(g => ({ Name: g.name, Platform: g.platformName, 'Release Year': g.releaseYear ?? '' }));
     exportToExcel(rows, 'upcoming-games');
   }
 
@@ -109,7 +109,7 @@ export default function UpcomingPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
-                  {(['Name', 'Platform', ''] as const).map((h, i) => {
+                  {(['Name', 'Platform', 'Year', ''] as const).map((h, i) => {
                     const field: SortField | undefined = h === 'Name' ? 'name' : h === 'Platform' ? 'platformName' : undefined;
                     return (
                       <th key={i} onClick={field ? () => toggleSort(field) : undefined}
@@ -128,6 +128,11 @@ export default function UpcomingPage() {
                     <td className="px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100">{game.name}</td>
                     <td className="px-4 py-2.5">
                       <span className={`${BADGE_CLASSES} ${getPlatformColor(game.platformName)}`}>{game.platformName}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {game.releaseYear != null
+                        ? <span className={`${BADGE_CLASSES} ${getYearColor(game.releaseYear)}`}>{game.releaseYear}</span>
+                        : <span className="text-sm text-gray-400 dark:text-gray-600">—</span>}
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
