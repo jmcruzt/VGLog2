@@ -36,7 +36,7 @@ type SortDir = 'asc' | 'desc';
 
 export default function UpcomingPage() {
   const [platformFilter, setPlatformFilter] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
@@ -53,6 +53,7 @@ export default function UpcomingPage() {
   const displayed = useMemo(() => {
     let result = games;
     if (platformFilter) result = result.filter(g => g.platformName === platformFilter);
+    if (!sortField) return result;
     return [...result].sort((a, b) => {
       const aVal = sortField === 'name' ? a.name : a.platformName;
       const bVal = sortField === 'name' ? b.name : b.platformName;
