@@ -33,6 +33,7 @@ async function initSchema(client: Client): Promise<void> {
       is_game_pass INTEGER NOT NULL DEFAULT 0,
       estimated_hours REAL,
       release_year INTEGER,
+      release_date TEXT,
       sort_order INTEGER NOT NULL DEFAULT 0,
       is_playing_now INTEGER NOT NULL DEFAULT 0,
       start_date TEXT,
@@ -55,9 +56,15 @@ async function initSchema(client: Client): Promise<void> {
   `);
 }
 
+async function runMigrations(client: Client): Promise<void> {
+  try {
+    await client.execute('ALTER TABLE games ADD COLUMN release_date TEXT');
+  } catch { /* column already exists */ }
+}
+
 export async function db(): Promise<Client> {
   const client = getClient();
-  if (!_initPromise) _initPromise = initSchema(client);
+  if (!_initPromise) _initPromise = initSchema(client).then(() => runMigrations(client));
   await _initPromise;
   return client;
 }

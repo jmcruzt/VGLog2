@@ -10,6 +10,7 @@ export interface Game {
   isGamePass: boolean;
   estimatedHours: number | null;
   releaseYear: number | null;
+  releaseDate: string | null;
   order: number;
   isPlayingNow: boolean;
   startDate: string | null;
@@ -63,6 +64,7 @@ export interface CreateGameDto {
   isGamePass: boolean;
   estimatedHours?: number;
   releaseYear?: number;
+  releaseDate?: string;
 }
 
 export interface UpdateGameDto {
@@ -72,6 +74,7 @@ export interface UpdateGameDto {
   isGamePass: boolean;
   estimatedHours?: number;
   releaseYear?: number;
+  releaseDate?: string;
 }
 
 export interface MarkCompletedDto {

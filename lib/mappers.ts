@@ -11,6 +11,7 @@ export function rowToGame(row: Row) {
     isGamePass: Boolean(Number(row.is_game_pass)),
     estimatedHours: row.estimated_hours != null ? Number(row.estimated_hours) : null,
     releaseYear: row.release_year != null ? Number(row.release_year) : null,
+    releaseDate: row.release_date as string | null,
     order: Number(row.sort_order),
     isPlayingNow: Boolean(Number(row.is_playing_now)),
     startDate: row.start_date as string | null,

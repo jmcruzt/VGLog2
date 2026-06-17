@@ -24,6 +24,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
   const [isGamePass, setIsGamePass] = useState(false);
   const [estimatedHours, setEstimatedHours] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
+  const [releaseDate, setReleaseDate] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
       setIsGamePass(game.isGamePass);
       setEstimatedHours(game.estimatedHours?.toString() ?? '');
       setReleaseYear(game.releaseYear?.toString() ?? '');
+      setReleaseDate(game.releaseDate ?? '');
     } else {
       setName('');
       setPlatformId((platforms.find(p => p.name === 'X1') ?? platforms[0])?.id ?? '');
@@ -41,6 +43,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
       setIsGamePass(false);
       setEstimatedHours('');
       setReleaseYear('');
+      setReleaseDate('');
     }
     setError(null);
   }, [game, platforms, isOpen]);
@@ -57,6 +60,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
           name: name.trim(), platformId, isROGAllyX, isGamePass,
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: releaseYear ? parseInt(releaseYear) : undefined,
+          releaseDate: releaseDate || undefined,
         };
         await updateGame.mutateAsync({ id: game.id, dto });
       } else {
@@ -64,6 +68,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
           name: name.trim(), platformId, status: defaultStatus, isROGAllyX, isGamePass,
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: releaseYear ? parseInt(releaseYear) : undefined,
+          releaseDate: releaseDate || undefined,
         };
         await createGame.mutateAsync(dto);
       }
@@ -115,6 +120,15 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             placeholder="e.g. 2024" />
         </div>
+        {(game?.status === 'upcoming' || defaultStatus === 'upcoming') && (
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Release Date <span className="text-xs text-gray-400">(optional)</span>
+            </label>
+            <input type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" />
+          </div>
+        )}
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Estimated Hours <span className="text-xs text-gray-400">(optional)</span>

@@ -9,7 +9,7 @@ function err(message: string, status = 400) { return NextResponse.json({ success
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
-  const { name, platformId, isROGAllyX, isGamePass, estimatedHours, releaseYear } = body;
+  const { name, platformId, isROGAllyX, isGamePass, estimatedHours, releaseYear, releaseDate } = body;
   if (!name?.trim()) return err('name is required');
   if (!platformId) return err('platformId is required');
   const client = await db();
@@ -20,8 +20,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   await client.batch([
     {
       sql: `UPDATE games SET name=?, platform_id=?, platform_name=?, is_rog_ally_x=?, is_game_pass=?,
-        estimated_hours=?, release_year=?, updated_at=? WHERE id=?`,
-      args: [name.trim(), platformId, platform.name, isROGAllyX ? 1 : 0, isGamePass ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, now, id],
+        estimated_hours=?, release_year=?, release_date=?, updated_at=? WHERE id=?`,
+      args: [name.trim(), platformId, platform.name, isROGAllyX ? 1 : 0, isGamePass ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, releaseDate ?? null, now, id],
     },
     { sql: 'INSERT INTO audit_logs (id, action, entity, entity_id, timestamp, details) VALUES (?, ?, ?, ?, ?, ?)', args: [randomUUID(), 'UPDATE', 'Game', id, now, JSON.stringify({ name })] },
   ], 'write');

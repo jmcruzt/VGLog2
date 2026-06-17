@@ -72,7 +72,7 @@ export default function UpcomingPage() {
   }
 
   function handleExport() {
-    const rows = displayed.map(g => ({ Name: g.name, Platform: g.platformName, 'Release Year': g.releaseYear ?? '' }));
+    const rows = displayed.map(g => ({ Name: g.name, Platform: g.platformName, 'Release Year': g.releaseYear ?? '', 'Release Date': g.releaseDate ?? '' }));
     exportToExcel(rows, 'upcoming-games');
   }
 
@@ -109,7 +109,7 @@ export default function UpcomingPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
-                  {(['Name', 'Platform', 'Year', ''] as const).map((h, i) => {
+                  {(['Name', 'Platform', 'Year', 'Release Date', ''] as const).map((h, i) => {
                     const field: SortField | undefined = h === 'Name' ? 'name' : h === 'Platform' ? 'platformName' : undefined;
                     return (
                       <th key={i} onClick={field ? () => toggleSort(field) : undefined}
@@ -134,6 +134,9 @@ export default function UpcomingPage() {
                         ? <span className={`${BADGE_CLASSES} ${getYearColor(game.releaseYear)}`}>{game.releaseYear}</span>
                         : <span className="text-sm text-gray-400 dark:text-gray-600">—</span>}
                     </td>
+                    <td className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300">
+                      {game.releaseDate ?? <span className="text-gray-400 dark:text-gray-600">—</span>}
+                    </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                         <button onClick={e => { e.stopPropagation(); setPlayNowGame(game); }}
@@ -156,7 +159,7 @@ export default function UpcomingPage() {
                   </tr>
                 ))}
                 {displayed.length === 0 && (
-                  <tr><td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">No upcoming games found.</td></tr>
+                  <tr><td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">No upcoming games found.</td></tr>
                 )}
               </tbody>
             </table>
