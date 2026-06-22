@@ -6,6 +6,7 @@ const PLATFORM_COLOR_MAP: Record<string, string> = {
   'PS3': 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
   'Xbox 360': 'bg-lime-100 text-lime-800 dark:bg-lime-900/40 dark:text-lime-300',
   'ROG Ally X': 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
+  'ROG': 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
   'X1': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
 };
 

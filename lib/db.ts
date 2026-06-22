@@ -60,6 +60,12 @@ async function runMigrations(client: Client): Promise<void> {
   try {
     await client.execute('ALTER TABLE games ADD COLUMN release_date TEXT');
   } catch { /* column already exists */ }
+  try {
+    await client.execute("INSERT OR IGNORE INTO platforms (id, name) VALUES ('rog', 'ROG')");
+  } catch { /* ignore */ }
+  try {
+    await client.execute("UPDATE games SET platform_id='rog', platform_name='ROG' WHERE is_rog_ally_x=1");
+  } catch { /* ignore */ }
 }
 
 export async function db(): Promise<Client> {

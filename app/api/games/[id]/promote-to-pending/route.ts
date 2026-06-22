@@ -11,7 +11,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const client = await db();
   const { rows: gRows } = await client.execute({ sql: 'SELECT * FROM games WHERE id = ?', args: [id] });
   if (gRows.length === 0) return err('game not found', 404);
-  const { platformId, isROGAllyX, isGamePass, estimatedHours, releaseYear, isPlayingNow, startDate } = await req.json();
+  const { platformId, isGamePass, estimatedHours, releaseYear, isPlayingNow, startDate } = await req.json();
   const { rows: pRows } = await client.execute({ sql: 'SELECT * FROM platforms WHERE id = ?', args: [platformId] });
   if (pRows.length === 0) return err('platform not found', 404);
   const platform = pRows[0];
@@ -21,9 +21,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const playStart = isPlayingNow ? (startDate ?? now) : null;
   await client.batch([
     {
-      sql: `UPDATE games SET status='pending', platform_id=?, platform_name=?, is_rog_ally_x=?, is_game_pass=?,
+      sql: `UPDATE games SET status='pending', platform_id=?, platform_name=?, is_game_pass=?,
         estimated_hours=?, release_year=?, sort_order=?, is_playing_now=?, start_date=?, updated_at=? WHERE id=?`,
-      args: [platformId, platform.name, isROGAllyX ? 1 : 0, isGamePass ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, maxOrder, isPlayingNow ? 1 : 0, playStart, now, id],
+      args: [platformId, platform.name, isGamePass ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, maxOrder, isPlayingNow ? 1 : 0, playStart, now, id],
     },
     { sql: 'INSERT INTO audit_logs (id, action, entity, entity_id, timestamp, details) VALUES (?, ?, ?, ?, ?, ?)', args: [randomUUID(), 'STATUS_CHANGE', 'Game', id, now, JSON.stringify({ status: 'pending', isPlayingNow })] },
   ], 'write');

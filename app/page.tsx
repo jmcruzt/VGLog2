@@ -59,7 +59,7 @@ export default function HomePage() {
 
   function handleExport() {
     const rows = games.map(g => ({
-      '#': g.order, 'ROG Ally X': g.isROGAllyX ? 'Yes' : 'No', 'Game Pass': g.isGamePass ? 'Yes' : 'No',
+      '#': g.order, 'Game Pass': g.isGamePass ? 'Yes' : 'No',
       'Name': g.name, 'Platform': g.platformName, 'Est. Hours': g.estimatedHours ?? '',
       'Release Year': g.releaseYear ?? '', 'Playing Now': g.isPlayingNow ? 'Yes' : 'No',
       'Start Date': g.startDate ? new Date(g.startDate).toLocaleDateString() : '',

@@ -17,7 +17,6 @@ export default function PromoteToPendingDialog({ isOpen, onClose, game, defaultP
   const promoteToPending = usePromoteToPending();
 
   const [platformId, setPlatformId] = useState('');
-  const [isROGAllyX, setIsROGAllyX] = useState(false);
   const [isGamePass, setIsGamePass] = useState(false);
   const [estimatedHours, setEstimatedHours] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
@@ -29,7 +28,7 @@ export default function PromoteToPendingDialog({ isOpen, onClose, game, defaultP
     if (isOpen) {
       setPlatformId(game.platformId || (platforms.find(p => p.name === 'X1') ?? platforms[0])?.id || '');
       setReleaseYear(''); setEstimatedHours('');
-      setIsROGAllyX(false); setIsGamePass(false);
+      setIsGamePass(false);
       setIsPlayingNow(defaultPlayingNow);
       setStartDate(new Date().toISOString().slice(0, 10));
       setError(null);
@@ -50,7 +49,7 @@ export default function PromoteToPendingDialog({ isOpen, onClose, game, defaultP
       await promoteToPending.mutateAsync({
         id: game.id,
         dto: {
-          platformId, isROGAllyX, isGamePass,
+          platformId, isGamePass,
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: parseInt(releaseYear),
           isPlayingNow,
@@ -109,11 +108,6 @@ export default function PromoteToPendingDialog({ isOpen, onClose, game, defaultP
             placeholder="e.g. 40" />
         </div>
         <div className="flex gap-6">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" checked={isROGAllyX} onChange={e => setIsROGAllyX(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 accent-indigo-600" />
-            ROG Ally X
-          </label>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input type="checkbox" checked={isGamePass} onChange={e => setIsGamePass(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 accent-indigo-600" />

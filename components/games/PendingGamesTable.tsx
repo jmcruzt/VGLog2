@@ -56,9 +56,6 @@ function SortableRow({ game, isDragEnabled, onEdit, onMarkCompleted, onPlayingNo
       </td>
       <td className="w-10 px-3 py-2.5 text-right text-xs text-gray-400 dark:text-gray-600">{game.order}</td>
       <td className="w-10 px-3 py-2.5 text-center text-xs">
-        {game.isROGAllyX && <span title="Installed on ROG Ally X" className="inline-block rounded bg-orange-100 px-1.5 py-0.5 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">ROG</span>}
-      </td>
-      <td className="w-10 px-3 py-2.5 text-center text-xs">
         {game.isGamePass && <span title="Available on Game Pass" className="inline-block rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900/40 dark:text-green-300">GP</span>}
       </td>
       <td className="px-3 py-2.5">
@@ -136,7 +133,7 @@ export default function PendingGamesTable({ games, isFiltered }: PendingGamesTab
     togglePlayingNow.mutate({ id: playingNowGame.id, startDate }, { onSuccess: () => setPlayingNowGame(null) });
   }
 
-  const columnHeaders = ['', '#', 'ROG', 'GP', 'Name', 'Platform', 'Est. Hours', 'Year', ''];
+  const columnHeaders = ['', '#', 'GP', 'Name', 'Platform', 'Est. Hours', 'Year', ''];
 
   return (
     <>
@@ -166,7 +163,7 @@ export default function PendingGamesTable({ games, isFiltered }: PendingGamesTab
             </DndContext>
             {games.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">
+                <td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">
                   No pending games found.
                 </td>
               </tr>

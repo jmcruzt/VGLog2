@@ -172,6 +172,9 @@ export default function UpcomingPage() {
         <DashboardCard title="Upcoming by Platform" isLoading={summaryLoading}>
           {summary && <GroupList items={summary.byPlatform} type="platform" />}
         </DashboardCard>
+        <DashboardCard title="Upcoming by Year" isLoading={summaryLoading}>
+          {summary && <GroupList items={summary.byYear} type="year" />}
+        </DashboardCard>
       </aside>
 
       <GameModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} defaultStatus="upcoming" />

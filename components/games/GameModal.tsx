@@ -20,7 +20,6 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
 
   const [name, setName] = useState('');
   const [platformId, setPlatformId] = useState('');
-  const [isROGAllyX, setIsROGAllyX] = useState(false);
   const [isGamePass, setIsGamePass] = useState(false);
   const [estimatedHours, setEstimatedHours] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
@@ -31,7 +30,6 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
     if (game) {
       setName(game.name);
       setPlatformId(game.platformId);
-      setIsROGAllyX(game.isROGAllyX);
       setIsGamePass(game.isGamePass);
       setEstimatedHours(game.estimatedHours?.toString() ?? '');
       setReleaseYear(game.releaseYear?.toString() ?? '');
@@ -39,7 +37,6 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
     } else {
       setName('');
       setPlatformId((platforms.find(p => p.name === 'X1') ?? platforms[0])?.id ?? '');
-      setIsROGAllyX(false);
       setIsGamePass(false);
       setEstimatedHours('');
       setReleaseYear('');
@@ -57,7 +54,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
     try {
       if (isEditing) {
         const dto: UpdateGameDto = {
-          name: name.trim(), platformId, isROGAllyX, isGamePass,
+          name: name.trim(), platformId, isGamePass,
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: releaseYear ? parseInt(releaseYear) : undefined,
           releaseDate: releaseDate || undefined,
@@ -65,7 +62,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
         await updateGame.mutateAsync({ id: game.id, dto });
       } else {
         const dto: CreateGameDto = {
-          name: name.trim(), platformId, status: defaultStatus, isROGAllyX, isGamePass,
+          name: name.trim(), platformId, status: defaultStatus, isGamePass,
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: releaseYear ? parseInt(releaseYear) : undefined,
           releaseDate: releaseDate || undefined,
@@ -139,11 +136,6 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
             placeholder="e.g. 40" />
         </div>
         <div className="flex gap-6">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" checked={isROGAllyX} onChange={e => setIsROGAllyX(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 accent-indigo-600" />
-            ROG Ally X
-          </label>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input type="checkbox" checked={isGamePass} onChange={e => setIsGamePass(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 accent-indigo-600" />

@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, platformId, status, isROGAllyX, isGamePass, estimatedHours, releaseYear, releaseDate } = body;
+  const { name, platformId, status, isGamePass, estimatedHours, releaseYear, releaseDate } = body;
   if (!name?.trim()) return err('name is required');
   if (!platformId) return err('platformId is required');
   if (!status) return err('status is required');
@@ -43,10 +43,10 @@ export async function POST(req: NextRequest) {
   const id = randomUUID();
   await client.batch([
     {
-      sql: `INSERT INTO games (id, name, platform_id, platform_name, status, is_rog_ally_x, is_game_pass,
+      sql: `INSERT INTO games (id, name, platform_id, platform_name, status, is_game_pass,
         estimated_hours, release_year, release_date, sort_order, is_playing_now, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
-      args: [id, name.trim(), platformId, platform.name, status, isROGAllyX ? 1 : 0, isGamePass ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, releaseDate ?? null, maxOrder, now, now],
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      args: [id, name.trim(), platformId, platform.name, status, isGamePass ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, releaseDate ?? null, maxOrder, now, now],
     },
     { sql: 'INSERT INTO audit_logs (id, action, entity, entity_id, timestamp, details) VALUES (?, ?, ?, ?, ?, ?)', args: [randomUUID(), 'CREATE', 'Game', id, now, JSON.stringify({ name, status })] },
   ], 'write');

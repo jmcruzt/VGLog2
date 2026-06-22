@@ -6,7 +6,6 @@ export interface Game {
   platformId: string;
   platformName: string;
   status: GameStatus;
-  isROGAllyX: boolean;
   isGamePass: boolean;
   estimatedHours: number | null;
   releaseYear: number | null;
@@ -50,17 +49,18 @@ export interface CompletedSummary {
   totalCompleted: number;
   yearSpan: number;
   byPlatform: GroupCount[];
+  byYear: GroupCount[];
 }
 
 export interface UpcomingSummary {
   byPlatform: GroupCount[];
+  byYear: GroupCount[];
 }
 
 export interface CreateGameDto {
   name: string;
   platformId: string;
   status: GameStatus;
-  isROGAllyX: boolean;
   isGamePass: boolean;
   estimatedHours?: number;
   releaseYear?: number;
@@ -70,7 +70,6 @@ export interface CreateGameDto {
 export interface UpdateGameDto {
   name: string;
   platformId: string;
-  isROGAllyX: boolean;
   isGamePass: boolean;
   estimatedHours?: number;
   releaseYear?: number;
@@ -84,7 +83,6 @@ export interface MarkCompletedDto {
 
 export interface PromoteToPendingDto {
   platformId: string;
-  isROGAllyX: boolean;
   isGamePass: boolean;
   estimatedHours?: number;
   releaseYear?: number;

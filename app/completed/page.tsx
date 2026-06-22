@@ -172,6 +172,9 @@ export default function CompletedPage() {
         <DashboardCard title="Completed by Platform" isLoading={summaryLoading}>
           {summary && <GroupList items={summary.byPlatform} type="platform" />}
         </DashboardCard>
+        <DashboardCard title="Completed by Year" isLoading={summaryLoading}>
+          {summary && <GroupList items={summary.byYear} type="year" />}
+        </DashboardCard>
       </aside>
     </div>
   );

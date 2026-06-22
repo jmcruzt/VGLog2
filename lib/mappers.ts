@@ -7,7 +7,6 @@ export function rowToGame(row: Row) {
     platformId: row.platform_id as string,
     platformName: row.platform_name as string,
     status: row.status as string,
-    isROGAllyX: Boolean(Number(row.is_rog_ally_x)),
     isGamePass: Boolean(Number(row.is_game_pass)),
     estimatedHours: row.estimated_hours != null ? Number(row.estimated_hours) : null,
     releaseYear: row.release_year != null ? Number(row.release_year) : null,
