@@ -51,6 +51,9 @@ async function initSchema(client: Client): Promise<void> {
       timestamp TEXT NOT NULL,
       details TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS migrations (
+      name TEXT PRIMARY KEY
+    );
     CREATE INDEX IF NOT EXISTS idx_games_status ON games(status);
     CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp DESC);
   `);
@@ -64,7 +67,11 @@ async function runMigrations(client: Client): Promise<void> {
     await client.execute("INSERT OR IGNORE INTO platforms (id, name) VALUES ('rog', 'ROG')");
   } catch { /* ignore */ }
   try {
-    await client.execute("UPDATE games SET platform_id='rog', platform_name='ROG' WHERE is_rog_ally_x=1");
+    const applied = await client.execute("SELECT name FROM migrations WHERE name='rog_platform_backfill'");
+    if (applied.rows.length === 0) {
+      await client.execute("UPDATE games SET platform_id='rog', platform_name='ROG' WHERE is_rog_ally_x=1");
+      await client.execute("INSERT INTO migrations (name) VALUES ('rog_platform_backfill')");
+    }
   } catch { /* ignore */ }
 }
 
