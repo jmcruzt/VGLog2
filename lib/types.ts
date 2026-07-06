@@ -50,11 +50,13 @@ export interface CompletedSummary {
   yearSpan: number;
   byPlatform: GroupCount[];
   byYear: GroupCount[];
+  gamePassByYear: GroupCount[];
 }
 
 export interface UpcomingSummary {
   byPlatform: GroupCount[];
   byYear: GroupCount[];
+  gamePassByYear: GroupCount[];
 }
 
 export interface CreateGameDto {

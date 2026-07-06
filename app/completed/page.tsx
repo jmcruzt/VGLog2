@@ -175,6 +175,9 @@ export default function CompletedPage() {
         <DashboardCard title="Completed by Year" isLoading={summaryLoading}>
           {summary && <GroupList items={summary.byYear} type="year" />}
         </DashboardCard>
+        <DashboardCard title="Game Pass by Year" isLoading={summaryLoading}>
+          {summary && <GroupList items={summary.gamePassByYear} type="year" />}
+        </DashboardCard>
       </aside>
     </div>
   );

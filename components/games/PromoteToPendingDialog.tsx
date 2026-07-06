@@ -27,8 +27,9 @@ export default function PromoteToPendingDialog({ isOpen, onClose, game, defaultP
   useEffect(() => {
     if (isOpen) {
       setPlatformId(game.platformId || (platforms.find(p => p.name === 'X1') ?? platforms[0])?.id || '');
-      setReleaseYear(''); setEstimatedHours('');
-      setIsGamePass(false);
+      setReleaseYear(game.releaseYear != null ? String(game.releaseYear) : '');
+      setEstimatedHours(game.estimatedHours != null ? String(game.estimatedHours) : '');
+      setIsGamePass(game.isGamePass ?? false);
       setIsPlayingNow(defaultPlayingNow);
       setStartDate(new Date().toISOString().slice(0, 10));
       setError(null);
