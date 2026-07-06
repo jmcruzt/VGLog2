@@ -114,7 +114,7 @@ export default function CompletedPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
-                  {(['Name', 'Platform', 'Hours', 'Year', 'Start Date', 'Completed Date', 'Days'] as const).map(h => {
+                  {(['GP', 'Name', 'Platform', 'Hours', 'Year', 'Start Date', 'Completed Date', 'Days'] as const).map(h => {
                     const field: SortField | undefined = h === 'Platform' ? 'platformName' : h === 'Completed Date' ? 'endDate' : undefined;
                     return (
                       <th key={h} onClick={field ? () => toggleSort(field) : undefined}
@@ -128,6 +128,9 @@ export default function CompletedPage() {
               <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
                 {displayed.map(game => (
                   <tr key={game.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50">
+                    <td className="w-10 px-3 py-2.5 text-center text-xs">
+                      {game.isGamePass && <span title="Available on Game Pass" className="inline-block rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900/40 dark:text-green-300">GP</span>}
+                    </td>
                     <td className="px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100">{game.name}</td>
                     <td className="px-4 py-2.5">
                       <span className={`${BADGE_CLASSES} ${getPlatformColor(game.platformName)}`}>{game.platformName}</span>
@@ -146,7 +149,7 @@ export default function CompletedPage() {
                   </tr>
                 ))}
                 {displayed.length === 0 && (
-                  <tr><td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">No completed games found.</td></tr>
+                  <tr><td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">No completed games found.</td></tr>
                 )}
               </tbody>
             </table>
