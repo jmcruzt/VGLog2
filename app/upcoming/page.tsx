@@ -36,6 +36,7 @@ type SortDir = 'asc' | 'desc';
 
 export default function UpcomingPage() {
   const [platformFilter, setPlatformFilter] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -53,6 +54,7 @@ export default function UpcomingPage() {
   const displayed = useMemo(() => {
     let result = games;
     if (platformFilter) result = result.filter(g => g.platformName === platformFilter);
+    if (nameFilter) result = result.filter(g => g.name.toLowerCase().includes(nameFilter.toLowerCase()));
     if (!sortField) return result;
     return [...result].sort((a, b) => {
       const aVal = sortField === 'name' ? a.name : a.platformName;
@@ -60,7 +62,7 @@ export default function UpcomingPage() {
       const cmp = aVal.localeCompare(bVal);
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [games, platformFilter, sortField, sortDir]);
+  }, [games, platformFilter, nameFilter, sortField, sortDir]);
 
   function toggleSort(field: SortField) {
     if (sortField === field) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
@@ -90,8 +92,11 @@ export default function UpcomingPage() {
             <option value="">All Platforms</option>
             {platforms.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
           </select>
-          {platformFilter && (
-            <button onClick={() => setPlatformFilter('')}
+          <input type="text" value={nameFilter} onChange={e => setNameFilter(e.target.value)}
+            placeholder="Search by name…"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" />
+          {(platformFilter || nameFilter) && (
+            <button onClick={() => { setPlatformFilter(''); setNameFilter(''); }}
               className="text-sm text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-200">
               Clear filter
             </button>
@@ -122,9 +127,12 @@ export default function UpcomingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
-                {displayed.map(game => (
+                {displayed.map(game => {
+                  const isReleased = !!game.releaseDate && new Date(game.releaseDate) <= new Date();
+                  return (
                   <tr key={game.id} onDoubleClick={() => setEditingGame(game)}
-                    className="group cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
+                    className={['group cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50',
+                      isReleased ? 'bg-green-50 dark:bg-green-900/20' : ''].join(' ')}
                     title="Double-click to edit">
                     <td className="w-10 px-3 py-2.5 text-center text-xs">
                       {game.isGamePass && <span title="Available on Game Pass" className="inline-block rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900/40 dark:text-green-300">GP</span>}
@@ -161,7 +169,8 @@ export default function UpcomingPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
                 {displayed.length === 0 && (
                   <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">No upcoming games found.</td></tr>
                 )}

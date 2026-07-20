@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useGames } from '@/hooks/useGames';
 import { usePlatforms } from '@/hooks/usePlatforms';
 import { usePendingSummary } from '@/hooks/useDashboards';
@@ -42,12 +42,13 @@ function GroupList({ items, type = 'plain' }: { items: GroupCount[]; type?: 'pla
 export default function HomePage() {
   const [platformFilter, setPlatformFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [hoursPerDayInput, setHoursPerDayInput] = useState('2');
 
   const { data: platforms = [] } = usePlatforms();
   const { exportToExcel } = useExportExcel();
-  const isFiltered = !!platformFilter || !!yearFilter;
+  const isFiltered = !!platformFilter || !!yearFilter || !!nameFilter;
 
   const { data: games = [], isLoading: gamesLoading } = useGames({
     status: 'pending',
@@ -55,10 +56,15 @@ export default function HomePage() {
     year: yearFilter ? parseInt(yearFilter) : undefined,
   });
 
+  const filteredGames = useMemo(
+    () => nameFilter ? games.filter(g => g.name.toLowerCase().includes(nameFilter.toLowerCase())) : games,
+    [games, nameFilter],
+  );
+
   const { data: pendingSummary, isLoading: pendingLoading } = usePendingSummary();
 
   function handleExport() {
-    const rows = games.map(g => ({
+    const rows = filteredGames.map(g => ({
       '#': g.order, 'Game Pass': g.isGamePass ? 'Yes' : 'No',
       'Name': g.name, 'Platform': g.platformName, 'Est. Hours': g.estimatedHours ?? '',
       'Release Year': g.releaseYear ?? '', 'Playing Now': g.isPlayingNow ? 'Yes' : 'No',
@@ -91,14 +97,17 @@ export default function HomePage() {
             <option value="">All Years</option>
             {uniqueYears.map(y => <option key={y} value={y?.toString()}>{y}</option>)}
           </select>
+          <input type="text" value={nameFilter} onChange={e => setNameFilter(e.target.value)}
+            placeholder="Search by name…"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" />
           {isFiltered && (
-            <button onClick={() => { setPlatformFilter(''); setYearFilter(''); }}
+            <button onClick={() => { setPlatformFilter(''); setYearFilter(''); setNameFilter(''); }}
               className="text-sm text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-200">
               Clear filters
             </button>
           )}
           <div className="ml-auto">
-            <button onClick={handleExport} disabled={games.length === 0}
+            <button onClick={handleExport} disabled={filteredGames.length === 0}
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">
               Export Excel
             </button>
@@ -107,7 +116,7 @@ export default function HomePage() {
         {isFiltered && <p className="mb-2 text-xs text-amber-600 dark:text-amber-400">Drag-to-reorder is disabled while filters are active.</p>}
         {gamesLoading
           ? <div className="py-12 text-center text-sm text-gray-400">Loading…</div>
-          : <PendingGamesTable games={games} isFiltered={isFiltered} />}
+          : <PendingGamesTable games={filteredGames} isFiltered={isFiltered} />}
       </div>
 
       <aside className="w-full space-y-4 md:w-72 md:shrink-0">

@@ -45,6 +45,7 @@ type SortDir = 'asc' | 'desc';
 
 export default function CompletedPage() {
   const [platformFilter, setPlatformFilter] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
   const [sortField, setSortField] = useState<SortField>('endDate');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -56,6 +57,7 @@ export default function CompletedPage() {
   const displayed = useMemo(() => {
     let result = games;
     if (platformFilter) result = result.filter(g => g.platformName === platformFilter);
+    if (nameFilter) result = result.filter(g => g.name.toLowerCase().includes(nameFilter.toLowerCase()));
     result = [...result].sort((a, b) => {
       const aVal = sortField === 'endDate' ? (a.endDate ?? '') : a.platformName;
       const bVal = sortField === 'endDate' ? (b.endDate ?? '') : b.platformName;
@@ -63,7 +65,7 @@ export default function CompletedPage() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return result;
-  }, [games, platformFilter, sortField, sortDir]);
+  }, [games, platformFilter, nameFilter, sortField, sortDir]);
 
   function toggleSort(field: SortField) {
     if (sortField === field) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
@@ -94,8 +96,11 @@ export default function CompletedPage() {
             <option value="">All Platforms</option>
             {platforms.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
           </select>
-          {platformFilter && (
-            <button onClick={() => setPlatformFilter('')}
+          <input type="text" value={nameFilter} onChange={e => setNameFilter(e.target.value)}
+            placeholder="Search by name…"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" />
+          {(platformFilter || nameFilter) && (
+            <button onClick={() => { setPlatformFilter(''); setNameFilter(''); }}
               className="text-sm text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-200">
               Clear filter
             </button>

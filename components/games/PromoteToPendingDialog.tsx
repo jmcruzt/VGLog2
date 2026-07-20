@@ -36,10 +36,6 @@ export default function PromoteToPendingDialog({ isOpen, onClose, game, defaultP
     }
   }, [game, platforms, isOpen, defaultPlayingNow]);
 
-  useEffect(() => {
-    if (!platformId && platforms.length > 0) setPlatformId(platforms[0].id);
-  }, [platforms, platformId]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
