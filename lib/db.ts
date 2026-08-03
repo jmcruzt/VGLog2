@@ -31,6 +31,7 @@ async function initSchema(client: Client): Promise<void> {
       status TEXT NOT NULL CHECK(status IN ('pending','completed','upcoming')),
       is_rog_ally_x INTEGER NOT NULL DEFAULT 0,
       is_game_pass INTEGER NOT NULL DEFAULT 0,
+      is_starred INTEGER NOT NULL DEFAULT 0,
       estimated_hours REAL,
       release_year INTEGER,
       release_date TEXT,
@@ -62,6 +63,9 @@ async function initSchema(client: Client): Promise<void> {
 async function runMigrations(client: Client): Promise<void> {
   try {
     await client.execute('ALTER TABLE games ADD COLUMN release_date TEXT');
+  } catch { /* column already exists */ }
+  try {
+    await client.execute('ALTER TABLE games ADD COLUMN is_starred INTEGER NOT NULL DEFAULT 0');
   } catch { /* column already exists */ }
   try {
     await client.execute("INSERT OR IGNORE INTO platforms (id, name) VALUES ('rog', 'ROG')");

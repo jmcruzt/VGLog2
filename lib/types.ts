@@ -7,6 +7,7 @@ export interface Game {
   platformName: string;
   status: GameStatus;
   isGamePass: boolean;
+  isStarred: boolean;
   estimatedHours: number | null;
   releaseYear: number | null;
   releaseDate: string | null;
@@ -64,6 +65,7 @@ export interface CreateGameDto {
   platformId: string;
   status: GameStatus;
   isGamePass: boolean;
+  isStarred: boolean;
   estimatedHours?: number;
   releaseYear?: number;
   releaseDate?: string;
@@ -73,6 +75,7 @@ export interface UpdateGameDto {
   name: string;
   platformId: string;
   isGamePass: boolean;
+  isStarred: boolean;
   estimatedHours?: number;
   releaseYear?: number;
   releaseDate?: string;

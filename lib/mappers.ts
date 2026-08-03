@@ -8,6 +8,7 @@ export function rowToGame(row: Row) {
     platformName: row.platform_name as string,
     status: row.status as string,
     isGamePass: Boolean(Number(row.is_game_pass)),
+    isStarred: Boolean(Number(row.is_starred)),
     estimatedHours: row.estimated_hours != null ? Number(row.estimated_hours) : null,
     releaseYear: row.release_year != null ? Number(row.release_year) : null,
     releaseDate: row.release_date as string | null,

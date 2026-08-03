@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   if (platform) { sql += ' AND platform_name = ?'; args.push(platform); }
   if (year) { sql += ' AND release_year = ?'; args.push(parseInt(year)); }
   if (status === 'upcoming') {
-    sql += ' ORDER BY release_year ASC NULLS LAST, release_date ASC NULLS LAST, name ASC';
+    sql += ' ORDER BY is_starred DESC, release_year ASC NULLS LAST, release_date ASC NULLS LAST, name ASC';
   } else {
     sql += ' ORDER BY is_playing_now DESC, sort_order ASC, created_at ASC';
   };
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, platformId, status, isGamePass, estimatedHours, releaseYear, releaseDate } = body;
+  const { name, platformId, status, isGamePass, isStarred, estimatedHours, releaseYear, releaseDate } = body;
   if (!name?.trim()) return err('name is required');
   if (!platformId) return err('platformId is required');
   if (!status) return err('status is required');
@@ -43,10 +43,10 @@ export async function POST(req: NextRequest) {
   const id = randomUUID();
   await client.batch([
     {
-      sql: `INSERT INTO games (id, name, platform_id, platform_name, status, is_game_pass,
+      sql: `INSERT INTO games (id, name, platform_id, platform_name, status, is_game_pass, is_starred,
         estimated_hours, release_year, release_date, sort_order, is_playing_now, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
-      args: [id, name.trim(), platformId, platform.name, status, isGamePass ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, releaseDate ?? null, maxOrder, now, now],
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      args: [id, name.trim(), platformId, platform.name, status, isGamePass ? 1 : 0, isStarred ? 1 : 0, estimatedHours ?? null, releaseYear ?? null, releaseDate ?? null, maxOrder, now, now],
     },
     { sql: 'INSERT INTO audit_logs (id, action, entity, entity_id, timestamp, details) VALUES (?, ?, ?, ?, ?, ?)', args: [randomUUID(), 'CREATE', 'Game', id, now, JSON.stringify({ name, status })] },
   ], 'write');

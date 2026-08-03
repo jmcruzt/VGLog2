@@ -21,6 +21,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
   const [name, setName] = useState('');
   const [platformId, setPlatformId] = useState('');
   const [isGamePass, setIsGamePass] = useState(false);
+  const [isStarred, setIsStarred] = useState(false);
   const [estimatedHours, setEstimatedHours] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
   const [releaseDate, setReleaseDate] = useState('');
@@ -31,6 +32,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
       setName(game.name);
       setPlatformId(game.platformId);
       setIsGamePass(game.isGamePass);
+      setIsStarred(game.isStarred);
       setEstimatedHours(game.estimatedHours?.toString() ?? '');
       setReleaseYear(game.releaseYear?.toString() ?? '');
       setReleaseDate(game.releaseDate ?? '');
@@ -38,6 +40,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
       setName('');
       setPlatformId((platforms.find(p => p.name === 'X1') ?? platforms[0])?.id ?? '');
       setIsGamePass(false);
+      setIsStarred(false);
       setEstimatedHours('');
       setReleaseYear('');
       setReleaseDate('');
@@ -54,7 +57,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
     try {
       if (isEditing) {
         const dto: UpdateGameDto = {
-          name: name.trim(), platformId, isGamePass,
+          name: name.trim(), platformId, isGamePass, isStarred,
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: releaseYear ? parseInt(releaseYear) : undefined,
           releaseDate: releaseDate || undefined,
@@ -62,7 +65,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
         await updateGame.mutateAsync({ id: game.id, dto });
       } else {
         const dto: CreateGameDto = {
-          name: name.trim(), platformId, status: defaultStatus, isGamePass,
+          name: name.trim(), platformId, status: defaultStatus, isGamePass, isStarred,
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: releaseYear ? parseInt(releaseYear) : undefined,
           releaseDate: releaseDate || undefined,
@@ -140,6 +143,11 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
             <input type="checkbox" checked={isGamePass} onChange={e => setIsGamePass(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 accent-indigo-600" />
             Game Pass
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" checked={isStarred} onChange={e => setIsStarred(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 accent-amber-500" />
+            Starred
           </label>
         </div>
       </form>

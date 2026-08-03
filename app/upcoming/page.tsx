@@ -75,7 +75,7 @@ export default function UpcomingPage() {
   }
 
   function handleExport() {
-    const rows = displayed.map(g => ({ Name: g.name, Platform: g.platformName, 'Release Year': g.releaseYear ?? '', 'Release Date': g.releaseDate ?? '' }));
+    const rows = displayed.map(g => ({ Starred: g.isStarred ? 'Yes' : '', Name: g.name, Platform: g.platformName, 'Release Year': g.releaseYear ?? '', 'Release Date': g.releaseDate ?? '' }));
     exportToExcel(rows, 'upcoming-games');
   }
 
@@ -115,7 +115,7 @@ export default function UpcomingPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
-                  {(['GP', 'Name', 'Platform', 'Year', 'Release Date', ''] as const).map((h, i) => {
+                  {(['★', 'GP', 'Name', 'Platform', 'Year', 'Release Date', ''] as const).map((h, i) => {
                     const field: SortField | undefined = h === 'Name' ? 'name' : h === 'Platform' ? 'platformName' : undefined;
                     return (
                       <th key={i} onClick={field ? () => toggleSort(field) : undefined}
@@ -134,6 +134,9 @@ export default function UpcomingPage() {
                     className={['group cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50',
                       isReleased ? 'bg-green-50 dark:bg-green-900/20' : ''].join(' ')}
                     title="Double-click to edit">
+                    <td className="w-8 px-2 py-2.5 text-center text-sm">
+                      {game.isStarred && <span title="Starred" className="text-amber-500 dark:text-amber-400">★</span>}
+                    </td>
                     <td className="w-10 px-3 py-2.5 text-center text-xs">
                       {game.isGamePass && <span title="Available on Game Pass" className="inline-block rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900/40 dark:text-green-300">GP</span>}
                     </td>
@@ -172,7 +175,7 @@ export default function UpcomingPage() {
                   );
                 })}
                 {displayed.length === 0 && (
-                  <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">No upcoming games found.</td></tr>
+                  <tr><td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600">No upcoming games found.</td></tr>
                 )}
               </tbody>
             </table>
