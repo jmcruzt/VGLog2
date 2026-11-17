@@ -72,7 +72,7 @@ export default function CompletedPage() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return result;
-  }, [games, platformFilter, nameFilter, sortField, sortDir]);
+  }, [games, platformFilter, yearFilter, nameFilter, sortField, sortDir]);
 
   function toggleSort(field: SortField) {
     if (sortField === field) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
