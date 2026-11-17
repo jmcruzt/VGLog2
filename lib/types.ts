@@ -79,6 +79,7 @@ export interface UpdateGameDto {
   estimatedHours?: number;
   releaseYear?: number;
   releaseDate?: string;
+  startDate?: string;
 }
 
 export interface MarkCompletedDto {

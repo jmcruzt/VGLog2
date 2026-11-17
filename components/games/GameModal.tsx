@@ -25,6 +25,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
   const [estimatedHours, setEstimatedHours] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
   const [releaseDate, setReleaseDate] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
       setEstimatedHours(game.estimatedHours?.toString() ?? '');
       setReleaseYear(game.releaseYear?.toString() ?? '');
       setReleaseDate(game.releaseDate ?? '');
+      setStartDate(game.startDate?.slice(0, 10) ?? '');
     } else {
       setName('');
       setPlatformId((platforms.find(p => p.name === 'X1') ?? platforms[0])?.id ?? '');
@@ -44,6 +46,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
       setEstimatedHours('');
       setReleaseYear('');
       setReleaseDate('');
+      setStartDate('');
     }
     setError(null);
   }, [game, platforms, isOpen]);
@@ -61,6 +64,7 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
           estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
           releaseYear: releaseYear ? parseInt(releaseYear) : undefined,
           releaseDate: releaseDate || undefined,
+          startDate: startDate || undefined,
         };
         await updateGame.mutateAsync({ id: game.id, dto });
       } else {
@@ -126,6 +130,15 @@ export default function GameModal({ isOpen, onClose, game, defaultStatus = 'pend
               Release Date <span className="text-xs text-gray-400">(optional)</span>
             </label>
             <input type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" />
+          </div>
+        )}
+        {isEditing && game?.isPlayingNow && (
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Start Date <span className="text-xs text-gray-400">(optional)</span>
+            </label>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" />
           </div>
         )}

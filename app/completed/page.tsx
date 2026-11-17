@@ -45,6 +45,7 @@ type SortDir = 'asc' | 'desc';
 
 export default function CompletedPage() {
   const [platformFilter, setPlatformFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
   const [nameFilter, setNameFilter] = useState('');
   const [sortField, setSortField] = useState<SortField>('endDate');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -54,9 +55,15 @@ export default function CompletedPage() {
   const { data: games = [], isLoading } = useGames({ status: 'completed' });
   const { data: summary, isLoading: summaryLoading } = useCompletedSummary();
 
+  const uniqueCompletionYears = useMemo(
+    () => [...new Set(games.map(g => g.endDate?.slice(0, 4)).filter((y): y is string => !!y))].sort((a, b) => b.localeCompare(a)),
+    [games],
+  );
+
   const displayed = useMemo(() => {
     let result = games;
     if (platformFilter) result = result.filter(g => g.platformName === platformFilter);
+    if (yearFilter) result = result.filter(g => g.endDate?.startsWith(yearFilter));
     if (nameFilter) result = result.filter(g => g.name.toLowerCase().includes(nameFilter.toLowerCase()));
     result = [...result].sort((a, b) => {
       const aVal = sortField === 'endDate' ? (a.endDate ?? '') : a.platformName;
@@ -96,11 +103,16 @@ export default function CompletedPage() {
             <option value="">All Platforms</option>
             {platforms.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
           </select>
+          <select value={yearFilter} onChange={e => setYearFilter(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+            <option value="">All Years</option>
+            {uniqueCompletionYears.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
           <input type="text" value={nameFilter} onChange={e => setNameFilter(e.target.value)}
             placeholder="Search by name…"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" />
-          {(platformFilter || nameFilter) && (
-            <button onClick={() => { setPlatformFilter(''); setNameFilter(''); }}
+          {(platformFilter || yearFilter || nameFilter) && (
+            <button onClick={() => { setPlatformFilter(''); setYearFilter(''); setNameFilter(''); }}
               className="text-sm text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-200">
               Clear filter
             </button>
